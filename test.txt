@@ -1,0 +1,13 @@
+This is a test file for our OpenAI file analyzer.
+It contains multiple lines of text that we want to analyze.
+
+The file analyzer should be able to:
+1. Read this file
+2. Extract its metadata (size, creation date, etc.)
+3. Send its contents to OpenAI for analysis
+4. Return both the metadata and the analysis results
+
+We can ask questions about this file, such as:
+- What is the main purpose of this file?
+- How many points are listed?
+- What capabilities are being tested? 

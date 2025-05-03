@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .priority-high { color: #dc3545; }
+        .priority-medium { color: #ffc107; }
+        .priority-low { color: #28a745; }
+        .analysis-section {
+            margin-bottom: 20px;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-4 mb-4">Email Analysis Dashboard</h1>
+                
+                <!-- Search Form -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="searchForm">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="searchQuery" 
+                                           placeholder="Search emails (e.g., from:someone@example.com, subject:meeting)">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control" id="maxResults" 
+                                           value="10" min="1" max="50">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search"></i> Analyze
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Analysis Results -->
+                <div id="analysisResults" style="display: none;">
+                    <div class="row">
+                        <!-- Summary Card -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Summary</h5>
+                                    <p id="summary" class="card-text"></p>
+                                    <div class="mt-3">
+                                        <span class="badge bg-primary" id="emailCount"></span>
+                                        <span class="badge bg-secondary" id="priorityBadge"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topics and Sentiment -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Topics & Sentiment</h5>
+                                    <div id="topics" class="mb-3"></div>
+                                    <hr>
+                                    <h6>Sentiment Analysis</h6>
+                                    <p id="sentiment" class="card-text"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Items and Deadlines -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Action Items & Deadlines</h5>
+                                    <ul id="actionItems" class="list-group list-group-flush mb-3"></ul>
+                                    <hr>
+                                    <h6>Important Deadlines</h6>
+                                    <ul id="deadlines" class="list-group list-group-flush"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participants -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Key Participants</h5>
+                                    <div id="participants"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Alert -->
+                <div class="alert alert-danger" id="errorAlert" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            const maxResults = document.getElementById('maxResults').value;
+            
+            showLoading(true);
+            try {
+                // First, fetch and analyze emails
+                const response = await fetch('/analyze-emails', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query, maxResults })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                displayResults(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function displayResults(data) {
+            // Hide error and show results
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('analysisResults').style.display = 'block';
+
+            // Display summary
+            document.getElementById('summary').textContent = data.summary;
+            document.getElementById('emailCount').textContent = `${data.emailCount} Emails Analyzed`;
+            
+            // Display priority
+            const priorityBadge = document.getElementById('priorityBadge');
+            priorityBadge.textContent = `Priority: ${data.priority}`;
+            priorityBadge.className = `badge bg-${getPriorityClass(data.priority)}`;
+
+            // Display topics
+            const topicsDiv = document.getElementById('topics');
+            topicsDiv.innerHTML = data.topics.map(topic => 
+                `<span class="badge bg-info">${topic}</span>`
+            ).join(' ');
+
+            // Display sentiment
+            document.getElementById('sentiment').textContent = data.sentiment;
+
+            // Display action items
+            const actionItemsList = document.getElementById('actionItems');
+            actionItemsList.innerHTML = data.actionItems.map(item =>
+                `<li class="list-group-item">
+                    <i class="fas fa-tasks text-primary me-2"></i>${item}
+                </li>`
+            ).join('');
+
+            // Display deadlines
+            const deadlinesList = document.getElementById('deadlines');
+            deadlinesList.innerHTML = data.deadlines.map(deadline =>
+                `<li class="list-group-item">
+                    <i class="fas fa-calendar-alt text-danger me-2"></i>${deadline}
+                </li>`
+            ).join('');
+
+            // Display participants
+            const participantsDiv = document.getElementById('participants');
+            participantsDiv.innerHTML = data.participants.map(participant =>
+                `<span class="badge bg-secondary">${participant}</span>`
+            ).join(' ');
+        }
+
+        function getPriorityClass(priority) {
+            switch (priority?.toLowerCase()) {
+                case 'high': return 'danger';
+                case 'medium': return 'warning';
+                case 'low': return 'success';
+                default: return 'secondary';
+            }
+        }
+
+        function showLoading(show) {
+            document.querySelector('.loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.textContent = message;
+            errorAlert.style.display = 'block';
+            document.getElementById('analysisResults').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
