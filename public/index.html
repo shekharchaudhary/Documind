@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMind - AI Document Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #5D3FD3;
+            --primary-hover: #4B32A8;
+            --danger-color: #f43f5e;
+            --danger-hover: #e11d48;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --bg-primary: #1e293b;
+            --bg-secondary: #1e293b;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .app-logo {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            opacity: 0.9;
+        }
+
+        .app-title {
+            font-size: 2.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .app-title span {
+            background: linear-gradient(135deg, var(--primary-color), #8B6BF2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-title-separator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            opacity: 0.5;
+            margin: 0 0.5rem;
+        }
+
+        .app-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .sidebar {
+            background: #0f172a;
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .content {
+            background: #0f172a;
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+            opacity: 0.9;
+        }
+
+        .directory-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .directory-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .directory-item:hover {
+            transform: translateY(-1px);
+            border-color: var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .directory-name {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .directory-name i {
+            color: #7c3aed;
+            font-size: 1rem;
+            opacity: 0.9;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border: none;
+            backdrop-filter: blur(8px);
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger i {
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: #0f172a;
+            color: var(--text-primary);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .file-card {
+            position: relative;
+            background: #0f172a;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow: hidden;
+        }
+
+        .file-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, var(--primary-color), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .file-card:hover {
+            transform: translateY(-2px) scale(1.02);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 20px -10px rgba(14, 165, 233, 0.3);
+        }
+
+        .file-card:hover::before {
+            opacity: 0.03;
+        }
+
+        .file-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1;
+        }
+
+        .file-icon-wrapper {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .file-card:hover .file-icon-wrapper {
+            background: rgba(14, 165, 233, 0.15);
+            transform: scale(1.05);
+        }
+
+        .file-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .meta-item i {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .directory-section {
+            margin-bottom: 2rem;
+        }
+
+        .directory-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .directory-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .directory-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .directory-count {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .upload-area {
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+            background: #0f172a;
+            cursor: pointer;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(14, 165, 233, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .analysis-section {
+            margin: 1.5rem 0 2.5rem 0;
+            display: none;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: var(--bg-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .analysis-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .analysis-header-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            opacity: 0.9;
+        }
+
+        .analysis-header-content {
+            flex: 1;
+        }
+
+        .analysis-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .metadata-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metadata-value {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .analysis-content {
+            padding: 1.5rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .analysis-content p {
+            margin-bottom: 1rem;
+        }
+
+        .analysis-content h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qa-section {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+
+        .qa-item {
+            background: #0f172a;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-top: 1.25rem;
+            border: 1px solid var(--border-color);
+            animation: slideIn 0.3s ease;
+        }
+
+        .qa-question {
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qa-question i {
+            font-size: 1.1rem;
+        }
+
+        .qa-answer {
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            line-height: 1.7;
+            padding: 0.5rem 0 0 1.75rem;
+            border-left: 2px solid var(--border-color);
+            margin-left: 0.25rem;
+        }
+
+        .documents-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 3px solid var(--bg-secondary);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 2rem auto;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+
+            .app-title {
+                font-size: 2rem;
+            }
+
+            .file-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content, .sidebar {
+                padding: 1.5rem;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-1px);
+            border-color: var(--primary-color);
+            background: #1e293b;
+        }
+
+        .nav-link i {
+            color: var(--primary-color);
+        }
+
+        .load-more-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            background: #0f172a;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .load-more-btn:hover {
+            background: #1e293b;
+            border-color: var(--primary-color);
+        }
+
+        .load-more-btn i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .load-more-btn:hover i {
+            transform: translateY(-1px);
+        }
+
+        .access-warning {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .access-notice {
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid var(--danger-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        .access-notice i {
+            color: var(--danger-color);
+            margin-right: 0.5rem;
+        }
+
+        .access-notice ol {
+            margin: 0.5rem 0 0 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .access-notice li {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <i class="fas fa-brain app-logo"></i>
+            <h1 class="app-title">
+                <span>Docu</span>Mind
+            </h1>
+            <p class="app-subtitle">Unlock document insights with AI-powered analysis for your local documents, emails, and more</p>
+        </header>
+
+        <nav class="nav-links">
+            <a href="/" class="nav-link">
+                <i class="fas fa-file-alt"></i>
+                Document Analysis
+            </a>
+            <a href="/auth/google" class="nav-link">
+                <i class="fas fa-envelope"></i>
+                Email Analysis
+            </a>
+        </nav>
+
+        <main class="main-content">
+            <aside class="sidebar">
+                <h2 class="section-title">
+                    <i class="fas fa-folder"></i>
+                    Watched Folders
+                </h2>
+                
+                <div class="input-group">
+                    <input type="text" id="newDirectory" class="input" placeholder="Add folder path...">
+                    <button onclick="addWatchDirectory()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div class="directory-list" id="directoryList"></div>
+
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    Recent Files
+                </h2>
+                <button onclick="loadRecentFiles()" class="btn btn-primary" style="width: 100%">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </aside>
+
+            <section class="content">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">Drop your file here or click to upload</p>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Supports documents, code files, and text files</p>
+                    <input type="file" id="fileInput" style="display: none">
+                </div>
+
+                <div class="input-group" id="analyzeGroup" style="display: none;">
+                    <input type="text" id="query" class="input" 
+                           placeholder="What would you like to know about the file?">
+                    <button onclick="analyzeFile()" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Analyze
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">Analyzing your file...</p>
+                </div>
+
+                <div class="analysis-section" id="result">
+                    <div class="analysis-header">
+                        <i class="fas fa-file-alt analysis-header-icon"></i>
+                        <div id="metadata"></div>
+                    </div>
+
+                    <div class="analysis-content" id="analysis"></div>
+
+                    <div class="qa-section" id="followUp">
+                        <h3 class="section-title">
+                            <i class="fas fa-comments"></i>
+                            Ask Follow-up Questions
+                        </h3>
+                        <div class="input-group">
+                            <input type="text" id="followUpQuery" class="input" 
+                                   placeholder="Ask another question about this file...">
+                            <button onclick="askFollowUp()" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Ask
+                            </button>
+                        </div>
+                        <div id="previousQA"></div>
+                    </div>
+                </div>
+
+                <div class="file-grid" id="fileList"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeGroup = document.getElementById('analyzeGroup');
+        let selectedFile = null;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                uploadArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class="fas fa-file-alt" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <p style="font-weight: 500; color: var(--text-primary);">Selected file:</p>
+                        <p style="color: var(--text-secondary);">${selectedFile.name}</p>
+                        <button onclick="resetFileSelection()" class="btn btn-danger" style="margin-top: 1rem;">
+                            <i class="fas fa-times"></i>
+                            Remove File
+                        </button>
+                    </div>
+                `;
+                analyzeGroup.style.display = 'flex';
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                uploadArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class="fas fa-file-alt" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <p style="font-weight: 500; color: var(--text-primary);">Selected file:</p>
+                        <p style="color: var(--text-secondary);">${selectedFile.name}</p>
+                        <button onclick="resetFileSelection()" class="btn btn-danger" style="margin-top: 1rem;">
+                            <i class="fas fa-times"></i>
+                            Remove File
+                        </button>
+                    </div>
+                `;
+                analyzeGroup.style.display = 'flex';
+            }
+        }
+
+        function resetFileSelection() {
+            selectedFile = null;
+            fileInput.value = '';
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">Drop your file here or click to upload</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Supports documents, code files, and text files</p>
+            `;
+            analyzeGroup.style.display = 'none';
+            const result = document.getElementById('result');
+            const followUp = document.getElementById('followUp');
+            result.style.display = 'none';
+            followUp.style.display = 'none';
+        }
+
+        async function analyzeFile() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const metadata = document.getElementById('metadata');
+            const analysis = document.getElementById('analysis');
+            const followUp = document.getElementById('followUp');
+            const query = document.getElementById('query').value || 'Please summarize this file';
+
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            followUp.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('query', query);
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    metadata.innerHTML = `
+                        <div class="analysis-header-content">
+                            <h2 class="analysis-title">Analysis Results</h2>
+                            <div class="metadata-grid">
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-file"></i>
+                                        Filename
+                                    </span>
+                                    <span class="metadata-value">${data.metadata.filename}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-hard-drive"></i>
+                                        Size
+                                    </span>
+                                    <span class="metadata-value">${formatFileSize(data.metadata.size)}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        Created
+                                    </span>
+                                    <span class="metadata-value">${new Date(data.metadata.created).toLocaleString()}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-calendar-check"></i>
+                                        Modified
+                                    </span>
+                                    <span class="metadata-value">${new Date(data.metadata.modified).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Format the analysis text with proper paragraphs and sections
+                    const formattedAnalysis = data.analysis
+                        .split('\n\n')
+                        .map(paragraph => `<p>${paragraph}</p>`)
+                        .join('');
+                    
+                    analysis.innerHTML = `
+                        <h3>
+                            <i class="fas fa-lightbulb" style="color: var(--primary-color)"></i>
+                            Analysis
+                        </h3>
+                        <div class="analysis-text">
+                            ${formattedAnalysis}
+                        </div>
+                    `;
+                    result.style.display = 'block';
+                    followUp.style.display = 'block';
+                    document.getElementById('previousQA').innerHTML = ''; // Clear previous Q&A
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error analyzing file: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function askFollowUp() {
+            const query = document.getElementById('followUpQuery').value;
+            if (!query) {
+                alert('Please enter a question');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const previousQA = document.getElementById('previousQA');
+                    const qaDiv = document.createElement('div');
+                    qaDiv.className = 'qa-item';
+                    qaDiv.innerHTML = `
+                        <div class="qa-question">
+                            <i class="fas fa-question-circle"></i>
+                            ${query}
+                        </div>
+                        <div class="qa-answer">
+                            ${data.analysis.split('\n').map(line => `<p>${line}</p>`).join('')}
+                        </div>
+                    `;
+                    previousQA.insertBefore(qaDiv, previousQA.firstChild);
+                    document.getElementById('followUpQuery').value = ''; // Clear input
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error processing follow-up question: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Add keyboard shortcut for the follow-up input
+        document.getElementById('followUpQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askFollowUp();
+            }
+        });
+
+        const ITEMS_PER_PAGE = 5;
+        const directoryStates = new Map();
+
+        async function loadRecentFiles() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+
+            try {
+                const response = await fetch('/recent-files');
+                const data = await response.json();
+
+                if (data.success) {
+                    if (Object.keys(data.groupedByDirectory).length > 0) {
+                        // Initialize directory states if not exists
+                        Object.keys(data.groupedByDirectory).forEach(dir => {
+                            if (!directoryStates.has(dir)) {
+                                directoryStates.set(dir, {
+                                    files: data.groupedByDirectory[dir],
+                                    currentPage: 1
+                                });
+                            }
+                        });
+
+                        fileList.innerHTML = Array.from(directoryStates.entries())
+                            .map(([directory, state]) => {
+                                const totalFiles = state.files.length;
+                                const displayedFiles = state.files.slice(0, state.currentPage * ITEMS_PER_PAGE);
+                                const hasMore = totalFiles > state.currentPage * ITEMS_PER_PAGE;
+                                const dirPath = Object.keys(data.directoryStatus).find(path => 
+                                    path.endsWith(directory));
+                                const hasAccess = dirPath ? data.directoryStatus[dirPath] : true;
+
+                                if (totalFiles === 0 && !hasAccess) {
+                                    return ''; // Don't show empty directories with no access
+                                }
+
+                                return `
+                                    <div class="directory-section">
+                                        <div class="directory-header">
+                                            <h3 class="directory-title">
+                                                <i class="fas fa-folder-open" style="color: var(--primary-color); opacity: 0.9;"></i>
+                                                ${directory}
+                                            </h3>
+                                            <span class="directory-count">
+                                                ${displayedFiles.length}/${totalFiles} files
+                                            </span>
+                                        </div>
+                                        ${!hasAccess && totalFiles === 0 ? `
+                                            <div class="access-notice">
+                                                <i class="fas fa-lock"></i>
+                                                <p>Permission denied for this directory. To fix this:</p>
+                                                <ol>
+                                                    <li>Open System Settings</li>
+                                                    <li>Go to Privacy & Security</li>
+                                                    <li>Grant full disk access to your terminal/editor</li>
+                                                </ol>
+                                            </div>
+                                        ` : ''}
+                                        ${totalFiles > 0 ? `
+                                            <div class="file-grid">
+                                                ${displayedFiles.map(file => `
+                                                    <div class="file-card" onclick="analyzeExistingFile('${file.path.replace(/'/g, "\\'")}')">
+                                                        <div class="file-card-header">
+                                                            <div class="file-icon-wrapper">
+                                                                <i class="fas ${getFileIcon(file.extension)} file-icon"></i>
+                                                            </div>
+                                                            <div class="file-info">
+                                                                <div class="file-name">${file.name}</div>
+                                                                <div class="file-meta">
+                                                                    <span class="meta-item">
+                                                                        <i class="fas fa-hard-drive"></i>
+                                                                        ${formatFileSize(file.size)}
+                                                                    </span>
+                                                                    <span class="meta-item">
+                                                                        <i class="fas fa-clock"></i>
+                                                                        ${new Date(file.lastAccessed).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                            ${hasMore ? `
+                                                <button class="load-more-btn" onclick="loadMoreFiles('${directory.replace(/'/g, "\\'")}')">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    Load More Files
+                                                </button>
+                                            ` : ''}
+                                        ` : ''}
+                                    </div>
+                                `;
+                            })
+                            .filter(Boolean) // Remove empty strings (hidden directories)
+                            .join('');
+
+                        // If all directories are empty, show no files message
+                        if (!fileList.innerHTML.trim()) {
+                            fileList.innerHTML = `
+                                <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                    <p>No files found in accessible directories</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        fileList.innerHTML = `
+                            <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <p>No recent files found</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    console.error('Error loading recent files:', data.error);
+                    fileList.innerHTML = `
+                        <div style="text-align: center; color: var(--danger-color); padding: 2rem;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Error loading recent files</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">${data.error || 'Unknown error occurred'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading recent files:', error);
+                fileList.innerHTML = `
+                    <div style="text-align: center; color: var(--danger-color); padding: 2rem;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Error loading recent files</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Please try refreshing the page</p>
+                    </div>
+                `;
+            }
+
+            loadWatchedDirectories();
+        }
+
+        function loadMoreFiles(directory) {
+            const state = directoryStates.get(directory);
+            if (state) {
+                state.currentPage++;
+                loadRecentFiles(); // Refresh the view with updated page numbers
+            }
+        }
+
+        function getFileIcon(extension) {
+            const iconMap = {
+                '.txt': 'fa-file-alt',
+                '.doc': 'fa-file-word',
+                '.docx': 'fa-file-word',
+                '.pdf': 'fa-file-pdf',
+                '.md': 'fa-file-alt',
+                '.js': 'fa-file-code',
+                '.py': 'fa-file-code',
+                '.java': 'fa-file-code',
+                '.cpp': 'fa-file-code',
+                '.h': 'fa-file-code',
+                '.json': 'fa-file-code',
+                '.xml': 'fa-file-code',
+                '.yaml': 'fa-file-code',
+                '.yml': 'fa-file-code',
+                '.csv': 'fa-file-csv',
+                '.xls': 'fa-file-excel',
+                '.xlsx': 'fa-file-excel'
+            };
+            return iconMap[extension.toLowerCase()] || 'fa-file';
+        }
+
+        async function loadWatchedDirectories() {
+            const directoryList = document.getElementById('directoryList');
+            
+            try {
+                const response = await fetch('/watched-directories');
+                const data = await response.json();
+
+                if (data.success) {
+                    directoryList.innerHTML = data.directories.map(dir => `
+                        <div class="directory-item">
+                            <span class="directory-name">
+                                <i class="fas fa-folder"></i>
+                                ${dir}
+                            </span>
+                            <button class="btn btn-danger" onclick="removeWatchDirectory('${dir.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading watched directories:', error);
+            }
+        }
+
+        async function addWatchDirectory() {
+            const input = document.getElementById('newDirectory');
+            const directory = input.value.trim();
+
+            if (!directory) {
+                alert('Please enter a directory path');
+                return;
+            }
+
+            try {
+                const response = await fetch('/watch-directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ directory })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    input.value = '';
+                    loadRecentFiles(); // Refresh the entire view
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error adding directory: ' + error.message);
+            }
+        }
+
+        async function removeWatchDirectory(directory) {
+            try {
+                const response = await fetch('/unwatch-directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ directory })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadRecentFiles(); // Refresh the entire view
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error removing directory: ' + error.message);
+            }
+        }
+
+        async function analyzeExistingFile(filePath) {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const metadata = document.getElementById('metadata');
+            const analysis = document.getElementById('analysis');
+            const followUp = document.getElementById('followUp');
+            const query = document.getElementById('query').value || 'Please summarize this file';
+
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            followUp.style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze-existing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ filePath, query })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    metadata.innerHTML = `
+                        <div class="analysis-header-content">
+                            <h2 class="analysis-title">Analysis Results</h2>
+                            <div class="metadata-grid">
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-file"></i>
+                                        Filename
+                                    </span>
+                                    <span class="metadata-value">${data.metadata.filename}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-hard-drive"></i>
+                                        Size
+                                    </span>
+                                    <span class="metadata-value">${formatFileSize(data.metadata.size)}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        Created
+                                    </span>
+                                    <span class="metadata-value">${new Date(data.metadata.created).toLocaleString()}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">
+                                        <i class="fas fa-calendar-check"></i>
+                                        Modified
+                                    </span>
+                                    <span class="metadata-value">${new Date(data.metadata.modified).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Format the analysis text with proper paragraphs and sections
+                    const formattedAnalysis = data.analysis
+                        .split('\n\n')
+                        .map(paragraph => `<p>${paragraph}</p>`)
+                        .join('');
+                    
+                    analysis.innerHTML = `
+                        <h3>
+                            <i class="fas fa-lightbulb" style="color: var(--primary-color)"></i>
+                            Analysis
+                        </h3>
+                        <div class="analysis-text">
+                            ${formattedAnalysis}
+                        </div>
+                    `;
+                    result.style.display = 'block';
+                    followUp.style.display = 'block';
+                    document.getElementById('previousQA').innerHTML = ''; // Clear previous Q&A
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error analyzing file: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Load recent files when the page loads
+        document.addEventListener('DOMContentLoaded', loadRecentFiles);
+    </script>
+</body>
+</html>
